@@ -1,0 +1,106 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  # Java application image (built from local Dockerfile)
+  etl-app:
+    build: .
+    image: etl-rabbitmq:latest
+    restart: "no"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - rabbitmq
+      - mysql
+
+  app-producer:
+    image: etl-rabbitmq:latest
+    depends_on:
+      - etl-app
+    command: ["producer"]
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      MYSQL_HOST: mysql
+    restart: "no"
+
+  app-employee-consumer:
+    image: etl-rabbitmq:latest
+    command: ["employee-consumer"]
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      MYSQL_HOST: mysql
+    depends_on:
+      - rabbitmq
+      - mysql
+    restart: unless-stopped
+
+  app-order-consumer:
+    image: etl-rabbitmq:latest
+    command: ["order-consumer"]
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      MYSQL_HOST: mysql
+    depends_on:
+      - rabbitmq
+      - mysql
+    restart: unless-stopped
+
+  app-transform:
+    image: etl-rabbitmq:latest
+    command: ["transform"]
+    environment:
+      MYSQL_HOST: mysql
+    depends_on:
+      - mysql
+    restart: "no"
+
+  etl-dashboard:
+    build: ./dashboard
+    image: etl-dashboard:latest
+    ports:
+      - "8080:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_MANAGEMENT_PORT: 15672
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - rabbitmq
+      - mysql
+    restart: "no"
+
+volumes:
+  mysql-data: {}
