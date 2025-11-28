@@ -19,7 +19,8 @@ function Wait-ForRabbitMq([int]$timeoutSec = 60) {
 		if ($portOk) {
 			try {
 				$url = 'http://localhost:15672/api/overview'
-				$creds = "$rabbitUser:$rabbitPass"
+				# Build credentials safely to avoid PowerShell variable parsing issues
+				$creds = "${rabbitUser}:${rabbitPass}"
 				$b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($creds))
 				$resp = Invoke-RestMethod -Uri $url -Method Get -Headers @{ Authorization = "Basic $b64" } -ErrorAction Stop
 				Write-Host "RabbitMQ management API ready"

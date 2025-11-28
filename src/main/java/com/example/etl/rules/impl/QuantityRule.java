@@ -18,10 +18,10 @@ public class QuantityRule<T> implements Rule<T> {
     public RuleResult validate(T value) {
         Integer v = extractor.apply(value);
         if (v == null) {
-            return new RuleResult(false, fieldName + " must not be null");
+            return new RuleResult(false, fieldName + " must not be null", fieldName);
         }
         if (v <= 0) {
-            return new RuleResult(false, fieldName + " must be greater than 0");
+            return new RuleResult(false, fieldName + " must be greater than 0", fieldName);
         }
         return new RuleResult(true, "");
     }

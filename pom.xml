@@ -4,6 +4,8 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.example</groupId>
   <artifactId>etl-rabbitmq</artifactId>
+  <name>Quản lý Dữ liệu Nhân sự (ETL Demo)</name>
+  <description>Plain-Java ETL demo: CSV → RabbitMQ → Staging → Transform → MySQL with DQ dashboard</description>
   <version>0.1.0</version>
   <properties>
     <maven.compiler.source>11</maven.compiler.source>

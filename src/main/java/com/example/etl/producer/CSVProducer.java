@@ -1,5 +1,12 @@
 package com.example.etl.producer;
 
+public class CSVProducer {
+    public static void main(String[] args) throws Exception {
+        Producer.main(args);
+    }
+}
+package com.example.etl.producer;
+
 import com.example.etl.models.Employee;
 import com.example.etl.models.OrderDetail;
 import com.example.etl.utils.RabbitMqUtil;

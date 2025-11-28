@@ -1,9 +1,8 @@
-﻿# etl-rabbitmq
-ETL pipeline sá»­ dá»¥ng RabbitMQ Ä‘á»ƒ ingest, transform vÃ  validate dá»¯ liá»‡u staging â†’ main.
+﻿# Quản lý Dữ liệu Nhân sự (ETL Demo)
 
-ETL-RabbitMQ-Integration-System
+Plain-Java ETL demo: CSV → RabbitMQ → Staging → Transform → MySQL, with a small Data Quality dashboard.
 
-Má»¥c tiÃªu: MÃ´ phá»ng pipeline ETL Ä‘á»c CSV -> publish lÃªn RabbitMQ -> consumer validate -> lÆ°u Staging DB -> transform -> load Main DB.
+Mục tiêu: Mô phỏng pipeline ETL đọc CSV → publish lên RabbitMQ → consumer validate → lưu Staging DB → transform → load Main DB.
 
 YÃªu cáº§u trÆ°á»›c khi cháº¡y:
 - Java 11+

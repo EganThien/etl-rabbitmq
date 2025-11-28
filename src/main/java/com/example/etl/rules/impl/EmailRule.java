@@ -20,10 +20,10 @@ public class EmailRule<T> implements Rule<T> {
     public RuleResult validate(T value) {
         String v = extractor.apply(value);
         if (v == null || v.trim().isEmpty()) {
-            return new RuleResult(false, fieldName + " must not be empty");
+            return new RuleResult(false, fieldName + " must not be empty", fieldName);
         }
         if (!EMAIL_PATTERN.matcher(v).matches()) {
-            return new RuleResult(false, fieldName + " is not a valid email");
+            return new RuleResult(false, fieldName + " is not a valid email", fieldName);
         }
         return new RuleResult(true, "");
     }

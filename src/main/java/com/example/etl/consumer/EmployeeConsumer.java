@@ -43,14 +43,18 @@ public class EmployeeConsumer {
                         ch.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                     } else {
                         System.err.println("Validation failed for " + e.getEmployeeId());
-                        StringBuilder sb = new StringBuilder();
+                        // build structured errors as JSON array of {field, message}
+                        java.util.List<java.util.Map<String, String>> errs = new java.util.ArrayList<>();
                         results.stream().filter(r -> !r.isOk()).forEach(r -> {
                             System.err.println(r.getMessage());
-                            if (sb.length() > 0) sb.append("; ");
-                            sb.append(r.getMessage());
+                            java.util.Map<String, String> m = new java.util.HashMap<>();
+                            m.put("field", r.getField() != null ? r.getField() : "");
+                            m.put("message", r.getMessage());
+                            errs.add(m);
                         });
-                        // persist into staging with validation errors for later inspection
-                        dao.insertEmployeeWithErrors(e, raw, sb.toString());
+                        String errsJson = mapper.writeValueAsString(errs);
+                        // persist into staging with structured validation errors
+                        dao.insertEmployeeWithErrors(e, raw, errsJson);
                         ch.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                     }
                 } catch (Exception ex) {
