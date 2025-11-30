@@ -15,6 +15,14 @@ Tóm tắt các thay đổi chính (1-2 câu):
 - [ ] Đã review code / unit tests cho thay đổi logic quan trọng
 - [ ] Đã thêm test cho chức năng mới (nếu có)
 
+### Truyền thông tin PR (giúp quản lý)
+
+- Issue liên quan (nếu có): `#<issue-number>`
+- Labels đề xuất (ví dụ): `enhancement`, `bug`, `docs`, `ci`
+- Reviewers đề xuất: `@<github-username>`
+
+Vui lòng điền các thông tin trên trước khi tạo PR để dễ quản lý.
+
 ## Hướng dẫn kiểm thử nhanh
 
 1. Nếu cập nhật schema, chạy migration: `migrations/001-add-phone.sql` hoặc lệnh ALTER TABLE tương ứng.
