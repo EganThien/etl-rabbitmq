@@ -97,5 +97,49 @@ File quan trá»ng:
 - `src/main/resources/data` : sample CSV
 - `src/main/resources/sql/create_tables.sql` : script táº¡o báº£ng
 
+Schema note — `phone` column
+--------------------------------
+Tôi đã thêm trường `phone` cho bảng `staging_employee` và `main_employee` (kiểu `VARCHAR(50)`). Nếu bạn đang nâng cấp một database hiện có, chạy migration SQL sau trước khi chạy pipeline:
+
+```sql
+ALTER TABLE staging_employee ADD COLUMN phone VARCHAR(50);
+ALTER TABLE main_employee ADD COLUMN phone VARCHAR(50);
+```
+
+CSV format
+----------
+`employee.csv` có thể có 3 hoặc 4 cột. Các cột hiện được đọc theo thứ tự:
+- `employee_id`, `full_name`, `email`, `[phone]` (phone là tuỳ chọn nếu file có cột thứ 4).
+
+Validation
+----------
+- `EmailRule` sử dụng Apache Commons `EmailValidator` để kiểm tra email chặt chẽ hơn.
+- `PhoneNumberRule` kiểm tra số điện thoại (hỗ trợ dấu `+`, số, khoảng trắng, gạch nối, ngoặc). Nếu bạn muốn chuẩn E.164, tôi có thể chuyển logic.
+
+Quick run (tóm tắt)
+-------------------
+1. Khởi DB schema (trong MySQL):
+```powershell
+# copy/create DB schema
+mysql -u root -p < src/main/resources/sql/create_tables.sql
+```
+2. Khởi stack (RabbitMQ + MySQL):
+```powershell
+docker compose up -d
+```
+3. Publish CSV -> queues (producer):
+```powershell
+mvn exec:java -Dexec.mainClass="com.example.etl.Application" -Dexec.args="producer"
+```
+4. Start consumers (nếu chạy ngoài Docker):
+```powershell
+mvn exec:java -Dexec.mainClass="com.example.etl.Application" -Dexec.args="employee-consumer"
+mvn exec:java -Dexec.mainClass="com.example.etl.Application" -Dexec.args="order-consumer"
+```
+5. Chạy transform/load:
+```powershell
+mvn exec:java -Dexec.mainClass="com.example.etl.Application" -Dexec.args="transform"
+```
+
 Tiáº¿p theo: TÃ´i sáº½ táº¡o skeleton Maven project vÃ  cÃ¡c class Java cÆ¡ báº£n.
  f231e4a (ETL demo: add project files, scripts and docs)
