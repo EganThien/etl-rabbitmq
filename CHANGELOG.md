@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.2.0] - 2025-12-01
 - Add stricter email validation: `EmailRule` now uses Apache Commons `EmailValidator`.
 - Add `phone` field to `Employee` model and DB schema (`staging_employee`, `main_employee`).
 - Add `PhoneNumberRule` and unit tests for phone validation.
