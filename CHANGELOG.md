@@ -10,9 +10,14 @@ All notable changes to this project are documented here.
 - Integrate validation into `TransformLoad`:
   - `transferEmployees()` and `transferOrders()` now validate staging records before upsert.
   - Invalid records are annotated in `validation_errors` JSON column and are not moved to main tables.
-- Update `StagingDao` to persist `phone` for employee staging inserts.
+  - Commit `validation_errors` updates immediately to ensure they persist.
+- Harden `StagingDao` with null-safe field handling and better error logging.
+- Add integration tests: `TransformLoadTest` with H2 in-memory DB (5 test cases, 19 total tests pass).
+- Add GitHub Actions CI workflow to run `mvn test` on push/PR.
+- Add E2E smoke script `scripts/run-e2e.ps1` for local end-to-end testing.
+- Add DB migration `migrations/001-add-phone.sql` for existing databases.
 - Fix: remove duplicate class declaration in `CSVProducer.java`.
-- Tests: added `PhoneNumberRuleTest`; all unit tests pass locally (14 tests, 0 failures).
+- Fix: PowerShell escaping in `run-e2e.ps1`.
 
 ## Notes
 - If upgrading an existing database, run migration SQL to add the `phone` column to `staging_employee` and `main_employee`.
