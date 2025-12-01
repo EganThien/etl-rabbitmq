@@ -7,6 +7,7 @@ import com.example.etl.rules.Rule;
 import com.example.etl.rules.RuleResult;
 import com.example.etl.rules.impl.EmailRule;
 import com.example.etl.rules.impl.NotEmptyRule;
+import com.example.etl.rules.impl.PhoneNumberRule;
 import com.example.etl.utils.RabbitMqUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
@@ -25,6 +26,8 @@ public class EmployeeConsumer {
         validator.addRule(new NotEmptyRule<Employee>((Employee e) -> e.getEmployeeId(), "employeeId"));
         validator.addRule(new NotEmptyRule<Employee>((Employee e) -> e.getFullName(), "fullName"));
         validator.addRule(new EmailRule<Employee>((Employee e) -> e.getEmail(), "email"));
+        // Validate phone if present
+        validator.addRule(new PhoneNumberRule<Employee>((Employee e) -> e.getPhone(), "phone"));
 
         try (Connection conn = RabbitMqUtil.newConnection(); Channel ch = conn.createChannel()) {
             ch.queueDeclare(EMPLOYEE_QUEUE, true, false, false, null);

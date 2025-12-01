@@ -9,13 +9,14 @@ import java.sql.PreparedStatement;
 
 public class StagingDao {
     public void insertEmployee(Employee e, String rawPayload) throws Exception {
-        String sql = "INSERT INTO staging_employee (employee_id, full_name, email, raw_payload, validation_errors) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO staging_employee (employee_id, full_name, email, phone, raw_payload, validation_errors) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection c = DbUtil.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, e.getEmployeeId());
             ps.setString(2, e.getFullName());
             ps.setString(3, e.getEmail());
-            ps.setString(4, rawPayload);
-            ps.setString(5, null);
+            ps.setString(4, e.getPhone());
+            ps.setString(5, rawPayload);
+            ps.setString(6, null);
             ps.executeUpdate();
         }
     }
@@ -34,13 +35,14 @@ public class StagingDao {
     }
 
     public void insertEmployeeWithErrors(Employee e, String rawPayload, String validationErrors) throws Exception {
-        String sql = "INSERT INTO staging_employee (employee_id, full_name, email, raw_payload, validation_errors) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO staging_employee (employee_id, full_name, email, phone, raw_payload, validation_errors) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection c = DbUtil.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, e.getEmployeeId());
             ps.setString(2, e.getFullName());
             ps.setString(3, e.getEmail());
-            ps.setString(4, rawPayload);
-            ps.setString(5, validationErrors);
+            ps.setString(4, e.getPhone());
+            ps.setString(5, rawPayload);
+            ps.setString(6, validationErrors);
             ps.executeUpdate();
         }
     }

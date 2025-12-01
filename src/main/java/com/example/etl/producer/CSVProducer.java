@@ -1,12 +1,5 @@
 package com.example.etl.producer;
 
-public class CSVProducer {
-    public static void main(String[] args) throws Exception {
-        Producer.main(args);
-    }
-}
-package com.example.etl.producer;
-
 import com.example.etl.models.Employee;
 import com.example.etl.models.OrderDetail;
 import com.example.etl.utils.RabbitMqUtil;
@@ -39,7 +32,8 @@ public class CSVProducer {
                         Employee e = new Employee();
                         e.setEmployeeId(line[0]);
                         e.setFullName(line[1]);
-                        e.setEmail(line[2]);
+                        e.setEmail(line.length > 2 ? line[2] : null);
+                        e.setPhone(line.length > 3 ? line[3] : null);
                         byte[] payload = mapper.writeValueAsBytes(e);
                         ch.basicPublish("", EMPLOYEE_QUEUE, null, payload);
                         System.out.println("Published employee: " + e.getEmployeeId());
