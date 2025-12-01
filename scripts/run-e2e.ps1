@@ -31,23 +31,19 @@ Start-Sleep -Seconds 10
 $logs = Join-Path $RepoRoot "scripts\logs"
 if (-not (Test-Path $logs)) { New-Item -ItemType Directory -Path $logs | Out-Null }
 
-function Start-Consumer($name, $args, $outfile) {
-    Write-Host "Starting consumer $name (logs -> $outfile)"
-    $psArgs = "-NoProfile -Command `"cd `"$RepoRoot`"; mvn exec:java -Dexec.mainClass=\"com.example.etl.Application\" -Dexec.args=\"$args\" 2>&1 | Out-File -FilePath \"$outfile\" -Encoding utf8`""
-    Start-Process -FilePath pwsh -ArgumentList $psArgs -WindowStyle Hidden | Out-Null
-}
-
-# Use pwsh if available; fallback to powershell
-if (Get-Command pwsh -ErrorAction SilentlyContinue) { $shell = 'pwsh' } else { $shell = 'powershell' }
-
 # Start consumers in background
 $empLog = Join-Path $logs "employee-consumer.log"
 $ordLog = Join-Path $logs "order-consumer.log"
-Write-Host "Starting employee consumer..."
-Start-Process -FilePath $shell -ArgumentList "-NoProfile","-Command","cd `"$RepoRoot`"; mvn exec:java -Dexec.mainClass=\"com.example.etl.Application\" -Dexec.args=\"employee-consumer\" 2>&1 | Out-File -FilePath \"$empLog\" -Encoding utf8" -WindowStyle Hidden | Out-Null
+
+Write-Host "Starting employee consumer (background)..."
+$empScript = "cd '$RepoRoot'; mvn exec:java -Dexec.mainClass='com.example.etl.Application' -Dexec.args='employee-consumer' 2>&1 | Out-File -FilePath '$empLog' -Encoding utf8"
+Start-Process -FilePath powershell -ArgumentList "-NoProfile","-Command",$empScript -WindowStyle Hidden
+
 Start-Sleep -Milliseconds 500
-Write-Host "Starting order consumer..."
-Start-Process -FilePath $shell -ArgumentList "-NoProfile","-Command","cd `"$RepoRoot`"; mvn exec:java -Dexec.mainClass=\"com.example.etl.Application\" -Dexec.args=\"order-consumer\" 2>&1 | Out-File -FilePath \"$ordLog\" -Encoding utf8" -WindowStyle Hidden | Out-Null
+
+Write-Host "Starting order consumer (background)..."
+$ordScript = "cd '$RepoRoot'; mvn exec:java -Dexec.mainClass='com.example.etl.Application' -Dexec.args='order-consumer' 2>&1 | Out-File -FilePath '$ordLog' -Encoding utf8"
+Start-Process -FilePath powershell -ArgumentList "-NoProfile","-Command",$ordScript -WindowStyle Hidden
 
 Start-Sleep -Seconds 2
 
