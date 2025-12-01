@@ -4,14 +4,14 @@ import com.example.etl.rules.Rule;
 import com.example.etl.rules.RuleResult;
 
 import java.util.function.Function;
-import org.apache.commons.validator.routines.EmailValidator;
 
-public class EmailRule<T> implements Rule<T> {
-    private static final EmailValidator VALIDATOR = EmailValidator.getInstance(true, true);
+public class PhoneNumberRule<T> implements Rule<T> {
+    // Accept international numbers with optional +, digits, spaces, dashes and parentheses
+    private static final String PHONE_REGEX = "^\\+?[0-9\\-() ]{7,20}$";
     private final Function<T, String> extractor;
     private final String fieldName;
 
-    public EmailRule(Function<T, String> extractor, String fieldName) {
+    public PhoneNumberRule(Function<T, String> extractor, String fieldName) {
         this.extractor = extractor;
         this.fieldName = fieldName;
     }
@@ -22,8 +22,8 @@ public class EmailRule<T> implements Rule<T> {
         if (v == null || v.trim().isEmpty()) {
             return new RuleResult(false, fieldName + " must not be empty", fieldName);
         }
-        if (!VALIDATOR.isValid(v)) {
-            return new RuleResult(false, fieldName + " is not a valid email", fieldName);
+        if (!v.matches(PHONE_REGEX)) {
+            return new RuleResult(false, fieldName + " is not a valid phone number", fieldName);
         }
         return new RuleResult(true, "");
     }

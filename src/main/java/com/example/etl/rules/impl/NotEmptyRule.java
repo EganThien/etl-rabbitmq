@@ -18,7 +18,7 @@ public class NotEmptyRule<T> implements Rule<T> {
     public RuleResult validate(T value) {
         String v = extractor.apply(value);
         if (v == null || v.trim().isEmpty()) {
-            return new RuleResult(false, fieldName + " must not be empty");
+            return new RuleResult(false, fieldName + " must not be empty", fieldName);
         }
         return new RuleResult(true, "");
     }

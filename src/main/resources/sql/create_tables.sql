@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS staging_employee (
   employee_id VARCHAR(50),
   full_name VARCHAR(255),
   email VARCHAR(255),
+  phone VARCHAR(50),
   raw_payload TEXT,
   validation_errors TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS main_employee (
   employee_id VARCHAR(50) UNIQUE,
   full_name VARCHAR(255),
   email VARCHAR(255),
+  phone VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

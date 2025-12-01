@@ -15,33 +15,37 @@ function Wait-ForMySql([int]$timeoutSec = 60) {
 	$start = Get-Date
 	while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
 		try {
-			# Try using docker compose exec (works when running in the compose project)
-			Write-Host "Checking MySQL readiness via 'docker compose exec'..."
-			$res = & docker compose exec -T mysql mysql -u root -p$rootpass -e "SELECT 1;" 2>&1
-			if ($LASTEXITCODE -eq 0) {
-				Write-Host "MySQL is ready (docker compose exec)"
-				return $true
-			}
-		} catch {
-			# ignore and try fallback
-		}
-
-		try {
-			# Fallback: find a container whose name contains 'mysql' and use docker exec
+			# Prefer checking container id directly with mysqladmin ping
 			$cid = (& docker ps -q --filter "name=mysql") -split "\r?\n" | Where-Object { $_ -ne '' } | Select-Object -First 1
 			if ($cid) {
-				Write-Host "Checking MySQL readiness via 'docker exec' on container id $cid..."
-				$res2 = & docker exec $cid mysql -u root -p$rootpass -e "SELECT 1;" 2>&1
+				Write-Host "Found mysql container id: $cid - checking with mysqladmin ping..."
+				$pingOut = & docker exec $cid mysqladmin ping -u root -p$rootpass --silent 2>&1
 				if ($LASTEXITCODE -eq 0) {
-					Write-Host "MySQL is ready (docker exec $cid)"
+					Write-Host "MySQL is ready (docker exec mysqladmin ping)"
 					return $true
+				} else {
+					Write-Host "mysqladmin ping failed: $pingOut"
 				}
 			} else {
 				Write-Host "No running container with name containing 'mysql' found yet. Showing 'docker compose ps' to help debugging:"
 				& docker compose ps
 			}
 		} catch {
-			# ignore
+			Write-Host "Error while checking mysql (docker exec): $_"
+		}
+
+		try {
+			# Fallback to docker compose exec if available
+			Write-Host "Checking MySQL readiness via 'docker compose exec'..."
+			$res = & docker compose exec -T mysql mysqladmin ping -u root -p$rootpass --silent 2>&1
+			if ($LASTEXITCODE -eq 0) {
+				Write-Host "MySQL is ready (docker compose exec mysqladmin ping)"
+				return $true
+			} else {
+				Write-Host "docker compose exec mysqladmin ping output: $res"
+			}
+		} catch {
+			Write-Host "Error while checking mysql (docker compose exec): $_"
 		}
 
 		Write-Host "Waiting for MySQL to be ready..."
@@ -53,5 +57,12 @@ function Wait-ForMySql([int]$timeoutSec = 60) {
 Write-Host "Waiting for MySQL to become ready..."
 Wait-ForMySql -timeoutSec 300
 
-Get-Content .\src\main\resources\sql\create_tables.sql | docker exec -i mysql sh -c "mysql -u root -p$rootpass etl_db"
+$cidFinal = (& docker ps -q --filter "name=mysql") -split "\r?\n" | Where-Object { $_ -ne '' } | Select-Object -First 1
+if ($cidFinal) {
+	Write-Host "Loading schema into container $cidFinal ..."
+	Get-Content .\src\main\resources\sql\create_tables.sql | docker exec -i $cidFinal sh -c "mysql -u root -p$rootpass etl_db"
+} else {
+	Write-Host "No mysql container id found; attempting to use docker exec by name 'mysql'..."
+	Get-Content .\src\main\resources\sql\create_tables.sql | docker exec -i mysql sh -c "mysql -u root -p$rootpass etl_db"
+}
 Write-Host "Schema loaded into MySQL (database: etl_db)."
