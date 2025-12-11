@@ -1,0 +1,11 @@
+OrderID,ProductID,ProductName,Quantity,Price
+ORD101,,Empty Product ID,5,1000
+ORD102,PROD-ABC,Invalid Quantity,0,500
+ORD103,ITEM-XYZ,Negative Quantity,-5,300
+ORD104,SKU-123,Invalid Price,10,abc
+ORD105,PROD-789,Negative Price,3,-100
+ORD106,,Both Empty,0,
+ORD107,CODE-456,Zero Price,5,0
+ORD108,,All Invalid,-1,-500
+ORD109,PART-999,String Quantity,xyz,1000
+ORD110,COMP-111,Missing Quantity,,250.5

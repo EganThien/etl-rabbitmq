@@ -61,8 +61,12 @@ $cidFinal = (& docker ps -q --filter "name=mysql") -split "\r?\n" | Where-Object
 if ($cidFinal) {
 	Write-Host "Loading schema into container $cidFinal ..."
 	Get-Content .\src\main\resources\sql\create_tables.sql | docker exec -i $cidFinal sh -c "mysql -u root -p$rootpass etl_db"
+	Write-Host "Schema loaded. Now loading rules configuration..."
+	Get-Content .\src\main\resources\sql\rules_configuration.sql | docker exec -i $cidFinal sh -c "mysql -u root -p$rootpass etl_db"
 } else {
 	Write-Host "No mysql container id found; attempting to use docker exec by name 'mysql'..."
 	Get-Content .\src\main\resources\sql\create_tables.sql | docker exec -i mysql sh -c "mysql -u root -p$rootpass etl_db"
+	Write-Host "Schema loaded. Now loading rules configuration..."
+	Get-Content .\src\main\resources\sql\rules_configuration.sql | docker exec -i mysql sh -c "mysql -u root -p$rootpass etl_db"
 }
-Write-Host "Schema loaded into MySQL (database: etl_db)."
+Write-Host "Schema and rules configuration loaded into MySQL (database: etl_db)."

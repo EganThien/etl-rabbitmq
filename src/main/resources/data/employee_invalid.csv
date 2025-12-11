@@ -1,0 +1,10 @@
+E101,Bob Invalid,bob_at_company,123
+E102,Li Chen,li@test,+8499
+E103,Bad Email,notanemail,456
+E104,Short Phone,good@email.com,12
+E105,No Domain,missing@,+84908639483
+E106,Wrong Format,user.name,+84901
+E107,Missing At,emailexample.com,99
+E108,Bad Phone,test@valid.com,abcd
+E109,Empty Email,,+84912345678
+E110,Empty Phone,valid@email.com,

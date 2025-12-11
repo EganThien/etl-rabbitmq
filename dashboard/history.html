@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Transform & Kiểm Toán</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e0f2f1 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+        .status-completed { background: #c8e6c9; color: #2e7d32; }
+        .status-processing { background: #fff9c4; color: #f57f17; }
+        .status-failed { background: #ffcdd2; color: #c62828; }
+        .metric-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>📊 Lịch Sử Transform & Kiểm Toán</h1>
+            <div>
+                <button class="btn btn-success" onclick="loadData()">🔄 Làm mới</button>
+                <a href="/" class="btn btn-secondary">← Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Metrics Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="text-muted">Tổng Batch</div>
+                    <div class="metric-value" id="totalBatches">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="text-muted">Records Xử Lý</div>
+                    <div class="metric-value" id="totalRecords">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="text-muted">Tỉ Lệ Hợp Lệ</div>
+                    <div class="metric-value text-success" id="validRate">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="text-muted">Thời Gian Xử Lý TB</div>
+                    <div class="metric-value text-info" id="avgTime">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transform Log -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">🌬️ Nhật Ký Lịch Sử Transform</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Loại Dữ Liệu</th>
+                                <th>Tổng Số</th>
+                                <th>Hợp Lệ</th>
+                                <th>Lỗi</th>
+                                <th>Thời Gian (ms)</th>
+                                <th>Trạng Thái</th>
+                                <th>Thời Điểm</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transformLogBody">
+                            <tr><td colspan="9" class="text-center">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Trail -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">🔍 Kiểm Toán - Biến Đổi Dữ Liệu Từng Trường</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="searchAudit" placeholder="Tìm kiếm theo Entity ID...">
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-striped">
+                        <thead class="table-light" style="position: sticky; top: 0;">
+                            <tr>
+                                <th>Batch</th>
+                                <th>Loại</th>
+                                <th>ID</th>
+                                <th>Trường</th>
+                                <th>Giá Trị Gốc</th>
+                                <th>→</th>
+                                <th>Sau Biến Đổi</th>
+                                <th>Quy Tắc</th>
+                                <th>Thời Điểm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTrailBody">
+                            <tr><td colspan="9" class="text-center">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality Metrics Charts -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">📈 Xu Hướng Tỉ Lệ Hợp Lệ (7 ngày)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="validRateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">📉 Xu Hướng Tỉ Lệ Lỗi (7 ngày)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="errorRateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality Metrics Table -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📊 Chi Tiết Chỉ Số Chất Lượng Dữ Liệu</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Loại Dữ Liệu</th>
+                                <th>Tổng Số</th>
+                                <th>Hợp Lệ</th>
+                                <th>Lỗi</th>
+                                <th>Tỉ Lệ Hợp Lệ</th>
+                                <th>Tỉ Lệ Lỗi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricsBody">
+                            <tr><td colspan="7" class="text-center">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Files -->
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #90caf9 0%, #64b5f6 100%);">
+                <h5 class="mb-0 text-white">📁 ETL Log Files</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên File</th>
+                                <th>Ngày</th>
+                                <th>Dung Lượng</th>
+                                <th>Cập Nhật</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logFilesBody">
+                            <tr><td colspan="5" class="text-center">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let validRateChart = null;
+        let errorRateChart = null;
+
+        async function loadData() {
+            await Promise.all([
+                loadTransformLog(),
+                loadAuditTrail(),
+                loadMetrics(),
+                loadLogFiles()
+            ]);
+        }
+
+        async function loadTransformLog() {
+            try {
+                const res = await fetch('/api/transform-history');
+                const data = await res.json();
+                
+                const tbody = document.getElementById('transformLogBody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">Chưa có dữ liệu</td></tr>';
+                    return;
+                }
+
+                // Calculate summary metrics
+                document.getElementById('totalBatches').textContent = new Set(data.map(d => d.batch_id)).size;
+                const totalRecords = data.reduce((sum, d) => sum + d.total_records, 0);
+                const validRecords = data.reduce((sum, d) => sum + d.valid_records, 0);
+                document.getElementById('totalRecords').textContent = totalRecords.toLocaleString();
+                document.getElementById('validRate').textContent = ((validRecords / totalRecords * 100) || 0).toFixed(1) + '%';
+                const avgTime = data.reduce((sum, d) => sum + d.processing_time_ms, 0) / data.length;
+                document.getElementById('avgTime').textContent = avgTime.toFixed(0) + 'ms';
+
+                tbody.innerHTML = data.map(row => `
+                    <tr>
+                        <td><code>${row.batch_id}</code></td>
+                        <td><span class="badge bg-primary">${row.entity_type}</span></td>
+                        <td>${row.total_records}</td>
+                        <td class="text-success">${row.valid_records}</td>
+                        <td class="text-danger">${row.error_records}</td>
+                        <td>${row.processing_time_ms}ms</td>
+                        <td><span class="status-badge status-${row.status}">${row.status}</span></td>
+                        <td>${new Date(row.created_at).toLocaleString('vi-VN')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info" onclick="filterAudit('${row.batch_id}')">
+                                Xem Kiểm Toán
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadAuditTrail(batchId = null) {
+            try {
+                const url = batchId ? `/api/audit-trail?batch_id=${batchId}` : '/api/audit-trail?limit=100';
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                const tbody = document.getElementById('auditTrailBody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">Chưa có dữ liệu</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(row => `
+                    <tr>
+                        <td><small>${row.batch_id.substring(0, 15)}...</small></td>
+                        <td><span class="badge bg-secondary">${row.entity_type}</span></td>
+                        <td><code>${row.entity_id}</code></td>
+                        <td><strong>${row.field_name}</strong></td>
+                        <td><span class="text-muted">${row.original_value}</span></td>
+                        <td>→</td>
+                        <td><span class="text-success">${row.transformed_value}</span></td>
+                        <td><small class="text-info">${row.transform_rule}</small></td>
+                        <td><small>${new Date(row.transformed_at).toLocaleTimeString('vi-VN')}</small></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadMetrics() {
+            try {
+                const res = await fetch('/api/quality-metrics?days=7');
+                const data = await res.json();
+                
+                const tbody = document.getElementById('metricsBody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Chưa có dữ liệu</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(row => `
+                    <tr>
+                        <td>${row.metric_date}</td>
+                        <td><span class="badge bg-info">${row.entity_type}</span></td>
+                        <td>${row.total_records}</td>
+                        <td class="text-success">${row.valid_records}</td>
+                        <td class="text-danger">${row.error_records}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" style="width: ${row.valid_rate}%">
+                                    ${row.valid_rate}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-danger" style="width: ${row.error_rate}%">
+                                    ${row.error_rate}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Render charts
+                renderCharts(data);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderCharts(data) {
+            // Group by date and calculate averages
+            const dateMap = {};
+            data.forEach(row => {
+                if (!dateMap[row.metric_date]) {
+                    dateMap[row.metric_date] = { valid: [], error: [] };
+                }
+                dateMap[row.metric_date].valid.push(row.valid_rate);
+                dateMap[row.metric_date].error.push(row.error_rate);
+            });
+
+            const dates = Object.keys(dateMap).sort();
+            const validRates = dates.map(date => {
+                const rates = dateMap[date].valid;
+                return (rates.reduce((a, b) => a + b, 0) / rates.length).toFixed(2);
+            });
+            const errorRates = dates.map(date => {
+                const rates = dateMap[date].error;
+                return (rates.reduce((a, b) => a + b, 0) / rates.length).toFixed(2);
+            });
+
+            // Valid Rate Chart
+            const validCtx = document.getElementById('validRateChart').getContext('2d');
+            if (validRateChart) validRateChart.destroy();
+            validRateChart = new Chart(validCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Valid Rate (%)',
+                        data: validRates,
+                        borderColor: '#4caf50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: value => value + '%' }
+                        }
+                    }
+                }
+            });
+
+            // Error Rate Chart
+            const errorCtx = document.getElementById('errorRateChart').getContext('2d');
+            if (errorRateChart) errorRateChart.destroy();
+            errorRateChart = new Chart(errorCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Error Rate (%)',
+                        data: errorRates,
+                        borderColor: '#f44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: value => value + '%' }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadLogFiles() {
+            try {
+                const res = await fetch('/api/list-logs');
+                const result = await res.json();
+                const data = result.files || [];
+                
+                const tbody = document.getElementById('logFilesBody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Chưa có log files</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(file => `
+                    <tr>
+                        <td><code>${file.name}</code></td>
+                        <td>${file.date}</td>
+                        <td>${file.size}</td>
+                        <td>${file.modified}</td>
+                        <td>
+                            <a href="/api/download-logs?date=${file.date}" class="btn btn-sm btn-primary" download>
+                                📥 Download
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function filterAudit(batchId) {
+            loadAuditTrail(batchId);
+        }
+
+        // Search functionality
+        document.getElementById('searchAudit').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#auditTrailBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        // Load on start
+        loadData();
+    </script>
+</body>
+</html>

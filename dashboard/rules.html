@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu Hình Quy Tắc</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e0f2f1 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .rule-enabled { background-color: #e8f5e9; }
+        .rule-disabled { background-color: #ffebee; opacity: 0.7; }
+        .badge-validation { background: #2196f3; }
+        .badge-transformation { background: #ff9800; }
+        .badge-quality_check { background: #9c27b0; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>⚙️ Cấu Hình Quy Tắc & Các Giai Đoạn Transform</h1>
+            <div>
+                <button class="btn btn-success" onclick="loadRules()">🔄 Làm mới</button>
+                <a href="/" class="btn btn-secondary">← Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Transform Stages -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🔄 Cấu Hình Các Giai Đoạn Transform</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <strong>Giai Đoạn 1: Làm Sạch Dữ Liệu</strong>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Kiểm Tra Hợp Lệ & Làm Sạch Cơ Bản</p>
+                                <ul class="small">
+                                    <li>Kiểm tra các trường bắt buộc</li>
+                                    <li>Validate định dạng (email, phone, số...)</li>
+                                    <li>Loại bỏ trùng lặp</li>
+                                    <li>Chuẩn hóa cơ bản</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <strong>Giai Đoạn 2: Làm Giàu Dữ Liệu</strong>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Biến Đổi Nâng Cao</p>
+                                <ul class="small">
+                                    <li>Áp dụng quy tắc định dạng</li>
+                                    <li>Tính toán các trường sinh ra</li>
+                                    <li>Tra cứu & kết nối bảng</li>
+                                    <li>Chuẩn hóa dữ liệu</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employee Rules -->
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);">
+                <h5 class="mb-0 text-white">👤 Quy Tắc Validation Nhân Viên</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên Quy Tắc</th>
+                                <th>Loại</th>
+                                <th>Trường</th>
+                                <th>Giai Đoạn</th>
+                                <th>Độ Nghiêm Trọng</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeRulesBody">
+                            <tr><td colspan="8" class="text-center">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Rules -->
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #ffb74d 0%, #ff9800 100%);">
+                <h5 class="mb-0 text-white">🛍️ Quy Tắc Validation Đơn Hàng</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên Quy Tắc</th>
+                                <th>Loại</th>
+                                <th>Trường</th>
+                                <th>Giai Đoạn</th>
+                                <th>Độ Nghiêm Trọng</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderRulesBody">
+                            <tr><td colspan="8" class="text-center">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rule Details Modal -->
+        <div class="modal fade" id="ruleModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ruleModalTitle">Chi Tiết Quy Tắc</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="ruleModalBody">
+                        <!-- Rule details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function loadRules() {
+            try {
+                const res = await fetch('/api/validation-rules');
+                const data = await res.json();
+                
+                const employeeRules = data.filter(r => r.entity_type === 'employee');
+                const orderRules = data.filter(r => r.entity_type === 'order');
+                
+                renderRules(employeeRules, 'employeeRulesBody');
+                renderRules(orderRules, 'orderRulesBody');
+            } catch (e) {
+                console.error(e);
+                alert('Lỗi load rules: ' + e.message);
+            }
+        }
+
+        function renderRules(rules, bodyId) {
+            const tbody = document.getElementById(bodyId);
+            
+            if (rules.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Không có quy tắc nào</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = rules.map(rule => `
+                <tr class="${rule.is_enabled ? 'rule-enabled' : 'rule-disabled'}">
+                    <td><strong>${rule.rule_code}</strong></td>
+                    <td>${rule.rule_name}</td>
+                    <td><span class="badge badge-${rule.rule_type}">${rule.rule_type}</span></td>
+                    <td><code>${rule.field_name || 'N/A'}</code></td>
+                    <td>Stage ${rule.stage_number || '-'}</td>
+                    <td><span class="badge bg-${rule.severity === 'ERROR' ? 'danger' : rule.severity === 'WARNING' ? 'warning' : 'info'}">${rule.severity}</span></td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" ${rule.is_enabled ? 'checked' : ''} 
+                                   onchange="toggleRule('${rule.rule_code}', this.checked)">
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewRule('${rule.rule_code}')">
+                            📋 Chi tiết
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function toggleRule(ruleCode, enabled) {
+            try {
+                const res = await fetch('/api/toggle-rule', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({rule_code: ruleCode, enabled: enabled})
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    alert(`Rule ${ruleCode} đã được ${enabled ? 'bật' : 'tắt'}`);
+                } else {
+                    alert('Lỗi: ' + result.error);
+                    loadRules(); // Reload to revert
+                }
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+                loadRules();
+            }
+        }
+
+        async function viewRule(ruleCode) {
+            try {
+                const res = await fetch(`/api/rule-detail/${ruleCode}`);
+                const rule = await res.json();
+                
+                document.getElementById('ruleModalTitle').textContent = `${rule.rule_code}: ${rule.rule_name}`;
+                document.getElementById('ruleModalBody').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Mã Quy Tắc:</strong> ${rule.rule_code}</p>
+                            <p><strong>Loại Dữ Liệu:</strong> ${rule.entity_type}</p>
+                            <p><strong>Tên Trường:</strong> ${rule.field_name || 'N/A'}</p>
+                            <p><strong>Loại:</strong> ${rule.rule_type}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Độ Nghiêm Trọng:</strong> <span class="badge bg-${rule.severity === 'ERROR' ? 'danger' : 'warning'}">${rule.severity}</span></p>
+                            <p><strong>Thứ Tự Thực Thi:</strong> ${rule.execution_order}</p>
+                            <p><strong>Trạng Thái:</strong> ${rule.is_enabled ? '✅ Đang Bật' : '❌ Đã Tắt'}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <p><strong>Mô Tả:</strong></p>
+                    <p class="text-muted">${rule.rule_description}</p>
+                    <p><strong>Logic Validation:</strong></p>
+                    <pre class="bg-light p-2 rounded">${rule.validation_logic}</pre>
+                    ${rule.error_message ? `<p><strong>Thông Báo Lỗi:</strong> <span class="text-danger">${rule.error_message}</span></p>` : ''}
+                `;
+                
+                new bootstrap.Modal(document.getElementById('ruleModal')).show();
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        // Load on start
+        loadRules();
+    </script>
+</body>
+</html>

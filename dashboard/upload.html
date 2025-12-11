@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETL CSV Upload</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #0056b3;
+            background: #e9ecef;
+        }
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .file-info {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .success-msg { color: #28a745; }
+        .error-msg { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h1 class="mb-4">🚀 ETL CSV Upload & Process</h1>
+                
+                <!-- Employee Upload -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📊 Tải Lên CSV Nhân Viên</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="empUploadArea">
+                            <input type="file" id="empFileInput" accept=".csv" style="display:none">
+                            <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #007bff;"></i>
+                            <p class="mt-3">Kéo thả file CSV vào đây hoặc click để chọn</p>
+                            <small class="text-muted">Định dạng: MãNV,HọTên,Email,SốĐiệnThoại</small>
+                        </div>
+                        <div id="empFileInfo" class="mt-3"></div>
+                        <div class="mt-3">
+                            <label>Tên file lưu (không cần .csv):</label>
+                            <input type="text" class="form-control" id="empFileName" placeholder="Ví dụ: nhanvien_thang12, employees_valid">
+                        </div>
+                        <button class="btn btn-primary mt-3 w-100" id="empUploadBtn" disabled>
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="empSpinner"></span>
+                            Tải Lên CSV Nhân Viên
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Upload -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">🛒 Tải Lên CSV Đơn Hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="ordUploadArea">
+                            <input type="file" id="ordFileInput" accept=".csv" style="display:none">
+                            <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #28a745;"></i>
+                            <p class="mt-3">Kéo thả file CSV vào đây hoặc click để chọn</p>
+                            <small class="text-muted">Định dạng: MãĐH,MãSP,TênSP,SốLượng,Giá</small>
+                        </div>
+                        <div id="ordFileInfo" class="mt-3"></div>
+                        <div class="mt-3">
+                            <label>Tên file lưu (không cần .csv):</label>
+                            <input type="text" class="form-control" id="ordFileName" placeholder="Ví dụ: donhang_thang12, orders_valid">
+                        </div>
+                        <button class="btn btn-success mt-3 w-100" id="ordUploadBtn" disabled>
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="ordSpinner"></span>
+                            Tải Lên CSV Đơn Hàng
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Process Options -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">⚙️ Tùy Chọn Xử Lý</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="clearDataCheck">
+                            <label class="form-check-label" for="clearDataCheck">
+                                Xóa dữ liệu cũ trước khi load (Clear old data)
+                            </label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="runTransformCheck" checked>
+                            <label class="form-check-label" for="runTransformCheck">
+                                Tự động chạy Transform & Validation sau khi upload
+                            </label>
+                        </div>
+                        <button class="btn btn-warning w-100 mt-3" id="processBtn">
+                            🚀 Xử Lý ETL Pipeline
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">📋 Kết Quả</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="results"></div>
+                        <a href="http://localhost:8080" target="_blank" class="btn btn-primary w-100 mt-3">
+                            📊 Xem Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Available Files -->
+                <div class="card mt-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">📁 File CSV Đã Upload</h5>
+                        <button class="btn btn-sm btn-light float-end" onclick="loadFileList()">🔄 Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="fileList">Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Employee upload
+        const empArea = document.getElementById('empUploadArea');
+        const empInput = document.getElementById('empFileInput');
+        const empUploadBtn = document.getElementById('empUploadBtn');
+        let empFile = null;
+
+        empArea.onclick = () => empInput.click();
+        
+        empInput.onchange = async (e) => {
+            empFile = e.target.files[0];
+            if (empFile) {
+                // Validate file structure
+                const text = await empFile.text();
+                const firstLine = text.split('\n')[0].toLowerCase();
+                
+                // Check if it looks like employee CSV (has email or phone)
+                if (!firstLine.includes('email') && !firstLine.includes('phone') && !firstLine.includes('employee')) {
+                    document.getElementById('empFileInfo').innerHTML = `
+                        <div class="alert alert-danger">
+                            ⚠️ <strong>Cảnh báo:</strong> File này có thể không phải CSV nhân viên!<br>
+                            <small>Cần có các cột: EmployeeID, FullName, Email, Phone</small>
+                        </div>`;
+                    empUploadBtn.disabled = true;
+                    return;
+                }
+                
+                document.getElementById('empFileInfo').innerHTML = `
+                    <div class="file-info">
+                        <strong>${empFile.name}</strong> (${(empFile.size/1024).toFixed(2)} KB)
+                    </div>`;
+                empUploadBtn.disabled = false;
+                
+                // Auto-suggest filename
+                const baseName = empFile.name.replace('.csv', '').replace(/\s+/g, '_');
+                document.getElementById('empFileName').value = baseName;
+            }
+        };
+
+        // Order upload (similar)
+        const ordArea = document.getElementById('ordUploadArea');
+        const ordInput = document.getElementById('ordFileInput');
+        const ordUploadBtn = document.getElementById('ordUploadBtn');
+        let ordFile = null;
+
+        ordArea.onclick = () => ordInput.click();
+        
+        ordInput.onchange = async (e) => {
+            ordFile = e.target.files[0];
+            if (ordFile) {
+                // Validate file structure
+                const text = await ordFile.text();
+                const firstLine = text.split('\n')[0].toLowerCase();
+                
+                // Check if it looks like order CSV (has order, product, quantity, or price)
+                if (!firstLine.includes('order') && !firstLine.includes('product') && !firstLine.includes('quantity') && !firstLine.includes('price')) {
+                    document.getElementById('ordFileInfo').innerHTML = `
+                        <div class="alert alert-danger">
+                            ⚠️ <strong>Cảnh báo:</strong> File này có thể không phải CSV đơn hàng!<br>
+                            <small>Cần có các cột: OrderID, ProductID, ProductName, Quantity, Price</small>
+                        </div>`;
+                    ordUploadBtn.disabled = true;
+                    return;
+                }
+                
+                document.getElementById('ordFileInfo').innerHTML = `
+                    <div class="file-info">
+                        <strong>${ordFile.name}</strong> (${(ordFile.size/1024).toFixed(2)} KB)
+                    </div>`;
+                ordUploadBtn.disabled = false;
+                
+                const baseName = ordFile.name.replace('.csv', '').replace(/\s+/g, '_');
+                document.getElementById('ordFileName').value = baseName;
+            }
+        };
+
+        // Upload employee
+        empUploadBtn.onclick = async () => {
+            const fileName = document.getElementById('empFileName').value || 'employee_upload';
+            await uploadFile(empFile, fileName, 'employee', empUploadBtn, 'empSpinner');
+        };
+
+        // Upload order
+        ordUploadBtn.onclick = async () => {
+            const fileName = document.getElementById('ordFileName').value || 'order_upload';
+            await uploadFile(ordFile, fileName, 'order', ordUploadBtn, 'ordSpinner');
+        };
+
+        async function uploadFile(file, fileName, type, btn, spinnerId) {
+            const spinner = document.getElementById(spinnerId);
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('filename', fileName);
+            formData.append('type', type);
+
+            try {
+                const response = await fetch('/api/upload-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(`✅ Upload thành công: ${fileName}.csv (${result.rows} dòng)`, 'success');
+                    loadFileList();
+                } else {
+                    showResult(`❌ Lỗi: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Lỗi kết nối: ${error.message}`, 'error');
+            } finally {
+                spinner.classList.add('d-none');
+                btn.disabled = false;
+            }
+        }
+
+        // Process pipeline
+        document.getElementById('processBtn').onclick = async () => {
+            const clearData = document.getElementById('clearDataCheck').checked;
+            const runTransform = document.getElementById('runTransformCheck').checked;
+            
+            showResult('⏳ Đang xử lý ETL Pipeline...', 'info');
+            
+            try {
+                const response = await fetch('/api/process-etl', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({clearData, runTransform})
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    let msg = `✅ Xử lý thành công!\n`;
+                    msg += `- Employees: ${result.transferred?.employees || 0} records\n`;
+                    msg += `- Orders: ${result.transferred?.orders || 0} records\n`;
+                    msg += `- Errors: ${result.errors || 0} validation errors`;
+                    showResult(msg, 'success');
+                } else {
+                    showResult(`❌ ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ ${error.message}`, 'error');
+            }
+        };
+
+        function showResult(message, type) {
+            const className = type === 'success' ? 'alert-success' : 
+                             type === 'error' ? 'alert-danger' : 'alert-info';
+            document.getElementById('results').innerHTML = `
+                <div class="alert ${className}" role="alert">${message.replace(/\n/g, '<br>')}</div>`;
+        }
+
+        async function loadFileList() {
+            try {
+                const response = await fetch('/api/list-csv');
+                const files = await response.json();
+                
+                let html = '<div class="row">';
+                html += '<div class="col-md-6"><h6>📊 Nhân Viên:</h6><ul class="list-group">';
+                files.employees.forEach(f => {
+                    html += `<li class="list-group-item d-flex justify-content-between">
+                        ${f.name} <small class="text-muted">${f.size}</small>
+                    </li>`;
+                });
+                html += '</ul></div>';
+                
+                html += '<div class="col-md-6"><h6>🛒 Đơn Hàng:</h6><ul class="list-group">';
+                files.orders.forEach(f => {
+                    html += `<li class="list-group-item d-flex justify-content-between">
+                        ${f.name} <small class="text-muted">${f.size}</small>
+                    </li>`;
+                });
+                html += '</ul></div></div>';
+                
+                document.getElementById('fileList').innerHTML = html;
+            } catch (error) {
+                document.getElementById('fileList').innerHTML = '<p class="text-danger">Lỗi tải danh sách</p>';
+            }
+        }
+
+        // Load on start
+        loadFileList();
+
+        // Drag and drop
+        [empArea, ordArea].forEach(area => {
+            area.ondragover = (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            };
+            area.ondragleave = () => area.classList.remove('dragover');
+            area.ondrop = (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                const input = area.querySelector('input[type=file]');
+                input.files = e.dataTransfer.files;
+                input.dispatchEvent(new Event('change'));
+            };
+        });
+    </script>
+</body>
+</html>

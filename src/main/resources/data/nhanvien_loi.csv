@@ -1,0 +1,11 @@
+EmployeeID,FullName,Email,Phone
+E101,,invalid-email,123
+E102,Nguyen Van B,@domain.com,abc
+E103,Tran Thi C,user@,0123
+E104,,validuser@test.com,0901234567
+E105,Pham Van D,invalid@email,12345678901234567
+E106,Le Thi E,user@domain,
+E107,Hoang Van F,userdomain.com,0901234567
+E108,,,,
+E109,Vo Thi G,valid@email.com,+1234567890123456789
+E110,Dang Van H,test@test.com,000000000

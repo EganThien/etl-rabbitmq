@@ -1,0 +1,11 @@
+EmployeeID,FullName,Email,Phone
+E201,NGUYEN MINH KHAI,nguyenkhai@test.com,0901111111
+E202,,invalid@,123456
+E203,tran van long,TRANLONG@COMPANY.VN,+84902222222
+E204,LE THI MAI,@domain.com,abc
+E205,  Pham Van   Nam  ,phamnam@email.com,84903333333
+E206,hoang thi oanh,hoangtoanh@test.vn,
+E207,vo van phuc,VOPHUC@MAIL.COM,0904444444
+E208,,validmail@test.com,invalid
+E209,dang thi quynh,dangquynh@company.com,+84905555555
+E210,NGUYEN VAN RONG,nguongrong@test.vn,0000000000

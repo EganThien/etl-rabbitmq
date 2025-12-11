@@ -1,0 +1,10 @@
+O3001,,Empty Product,5,100.00
+O3002,P302,Negative Quantity,-10,50.00
+O3003,,Another Empty Product,3,75.00
+O3004,P304,Zero Quantity,0,200.00
+O3005,P305,Huge Negative,-999,150.00
+O3006,,Missing Product ID,20,25.99
+O3007,P307,Small Negative,-1,500.00
+O3008,,No Product Again,1,99.99
+O3009,P309,Invalid Qty,-50,300.00
+O3010,,Last Empty Product,7,450.00

@@ -2,9 +2,16 @@
 # Usage: open PowerShell in project root and run: .\scripts\run-full.ps1
 
 # Ensure script runs from repository root
-Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+$projectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+Set-Location -Path $projectRoot
 
-Write-Host "Building images and starting services..."
+Write-Host "Building Java application with Maven..."
+mvn clean package -DskipTests
+if ($LASTEXITCODE -ne 0) {
+    throw "Maven build failed"
+}
+
+Write-Host "Building Docker images and starting services..."
 docker compose up --build -d
 
 # Read MYSQL_ROOT_PASSWORD from .env if present
@@ -26,18 +33,17 @@ function Wait-ForMySql([int]$timeoutSec = 60) {
 				return $true
 			}
 		} catch {
-			# ignore and retry
-		}
-		Write-Host "Waiting for MySQL to be ready..."
-		Start-Sleep -Seconds 2
+		# ignore and retry
 	}
+	Write-Host "Waiting for MySQL to be ready..."
+	Start-Sleep -Seconds 3
+}
 	throw "MySQL did not become ready within $timeoutSec seconds"
 }
 
 Write-Host "Waiting for MySQL to become ready..."
-Wait-ForMySql -timeoutSec 120
- 
-# Read RabbitMQ creds from .env (defaults to guest/guest)
+Start-Sleep -Seconds 10
+Wait-ForMySql -timeoutSec 180# Read RabbitMQ creds from .env (defaults to guest/guest)
 $rabbitUser = 'guest'
 $rabbitPass = 'guest'
 if (Test-Path .\.env) {

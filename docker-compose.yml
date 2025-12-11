@@ -97,6 +97,17 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      # Email notification settings (optional)
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_TO_EMAIL: ${SMTP_TO_EMAIL:-admin@example.com}
+      ERROR_NOTIFICATION_THRESHOLD: ${ERROR_NOTIFICATION_THRESHOLD:-10}
+      # Scheduler settings
+      ENABLE_SCHEDULER: ${ENABLE_SCHEDULER:-false}
+      USE_V2_TRANSFORM: ${USE_V2_TRANSFORM:-true}
+      DASHBOARD_URL: http://localhost:8080
     depends_on:
       - rabbitmq
       - mysql

@@ -15,7 +15,10 @@ public class DbUtil {
         String user = System.getenv().getOrDefault("MYSQL_USER", "etl");
         String password = System.getenv().getOrDefault("MYSQL_PASSWORD", "etlpass");
 
-        String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true", host, port, database);
+        String jdbcUrl = String.format(
+            "jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true&connectionCollation=utf8mb4_unicode_ci", 
+            host, port, database
+        );
         return DriverManager.getConnection(jdbcUrl, user, password);
     }
 }

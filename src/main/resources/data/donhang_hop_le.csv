@@ -1,0 +1,11 @@
+OrderID,ProductID,ProductName,Quantity,Price
+ORD001,prod123,Laptop Dell,5,15999.99
+ORD002,PROD456,Mouse Logitech,10,250.5
+ORD003,item789,Keyboard Mechanical,3,1200.999
+ORD004,sku-abc,Monitor LG 24inch,2,3500.00
+ORD005,product999,USB Cable,50,25.75
+ORD006,code-xyz,Webcam HD,8,850.333
+ORD007,art-123,Headphone Sony,4,2100.99
+ORD008,part-456,SSD 500GB,6,1850.5
+ORD009,comp-789,RAM 8GB,12,650.25
+ORD010,tool-abc,External HDD 2TB,3,1999.999

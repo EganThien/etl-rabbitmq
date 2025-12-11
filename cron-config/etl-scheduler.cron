@@ -1,0 +1,25 @@
+# ETL Scheduled Jobs Configuration
+# 
+# Setup Instructions:
+# 1. Copy this file to /etc/cron.d/etl-scheduler
+# 2. Ensure scheduler.py has execute permissions: chmod +x /app/scheduler.py
+# 3. Restart cron service: service cron restart
+#
+# Cron Format: minute hour day month weekday command
+# Examples:
+#   */15 * * * *  = Every 15 minutes
+#   0 */2 * * *   = Every 2 hours
+#   0 0 * * *     = Daily at midnight
+#   0 9 * * 1-5   = Weekdays at 9 AM
+
+# Run ETL Transform every 30 minutes (during business hours)
+*/30 8-18 * * 1-5 root cd /app && /usr/local/bin/python3 /app/scheduler.py >> /app/logs/cron.log 2>&1
+
+# Run ETL Transform every hour (outside business hours)
+0 19-23,0-7 * * * root cd /app && /usr/local/bin/python3 /app/scheduler.py >> /app/logs/cron.log 2>&1
+
+# Daily cleanup of old logs (keep last 30 days)
+0 1 * * * root find /app/logs -name "*.log" -mtime +30 -delete
+
+# Weekly database metrics aggregation
+0 2 * * 0 root cd /app && /usr/local/bin/python3 -c "import requests; requests.post('http://localhost:8080/api/run-transform')" >> /app/logs/cron.log 2>&1
